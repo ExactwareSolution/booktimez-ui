@@ -1,0 +1,394 @@
+const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  "https://zd4hf92j-4000.inc1.devtunnels.ms/api";
+
+async function request(path, opts = {}) {
+  const url = `${API_BASE}${path}`;
+
+  const isFormData = opts.body instanceof FormData;
+
+  const headers = {
+    ...(opts.headers || {}),
+  };
+
+  // ❗ DO NOT set Content-Type for FormData
+  if (!isFormData && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  console.debug("api.request ->", {
+    url,
+    method: opts.method,
+    headers,
+    body: isFormData ? "[FormData]" : opts.body,
+  });
+
+  const res = await fetch(url, {
+    ...opts,
+    headers,
+  });
+
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+export async function login(email, password) {
+  return request("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function loginWithGoogle(payload) {
+  // payload: { email, googleId, name }
+  return request("/auth/google", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function register(email, password, name, planId) {
+  const body = { email, password, name };
+  if (planId) body.planId = planId;
+  return request("/auth/register", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function updatePassword(token, newPassword) {
+  return request("/auth/update-password", {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ newPassword }),
+  });
+}
+
+export async function listPlans() {
+  return request("/plans", { method: "GET" });
+}
+
+export async function createPlan(token, payload) {
+  return request("/plans", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function checkoutPlan(token, planId) {
+  return request(`/plans/${planId}/checkout`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function confirmCheckout(token, sessionId) {
+  return request(`/plans/confirm`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ sessionId }),
+  });
+}
+
+export async function createRazorpayOrder(token, planId) {
+  return request(`/plans/${planId}/razorpay`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getPaymentProviders() {
+  return request(`/plans/providers`, { method: "GET" });
+}
+
+export async function confirmRazorpay(token, payload) {
+  return request(`/plans/confirm`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+}
+
+/* =========================================================
+   CREATE BUSINESS
+   - Supports logo upload
+   - Supports JSONB (businessDetails)
+========================================================= */
+export async function createBusiness(token, payload) {
+  const formData = new FormData();
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (key === "businessDetails" || key === "categoryIds") {
+      formData.append(key, JSON.stringify(value));
+    } else {
+      formData.append(key, value);
+    }
+  });
+
+  return request("/business", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+}
+
+/* =========================================================
+   UPDATE BUSINESS (basic fields + logo)
+========================================================= */
+export async function updateBusiness(token, businessId, payload) {
+  const formData = new FormData();
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (key === "categoryIds") {
+      formData.append(key, JSON.stringify(value));
+    } else {
+      formData.append(key, value);
+    }
+  });
+
+  return request(`/business/${businessId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+}
+
+/* =========================================================
+   LIST MY BUSINESSES
+========================================================= */
+export async function listMyBusinesses(token) {
+  return request("/business", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+/* =========================================================
+   GET SINGLE BUSINESS
+========================================================= */
+export async function getBusiness(token, businessId) {
+  return request(`/business/${businessId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+/* =========================================================
+   DELETE BUSINESS
+========================================================= */
+export async function deleteBusiness(token, businessId) {
+  return request(`/business/${businessId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+/* =========================================================
+   JSONB – FULL REPLACE
+========================================================= */
+export async function replaceBusinessDetails(token, businessId, details) {
+  return request(`/business/${businessId}/details`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(details),
+  });
+}
+
+/* =========================================================
+   JSONB – PATCH / MERGE
+========================================================= */
+export async function patchBusinessDetails(token, businessId, patch) {
+  return request(`/business/${businessId}/details`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(patch),
+  });
+}
+
+/* =========================================================
+   JSONB – ADD ITEM TO ANY SECTION
+========================================================= */
+export async function addBusinessItem(token, businessId, section, item) {
+  return request(`/business/${businessId}/details/${section}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(item),
+  });
+}
+
+/* =========================================================
+   JSONB – UPDATE ITEM
+========================================================= */
+export async function updateBusinessItem(
+  token,
+  businessId,
+  section,
+  itemId,
+  payload
+) {
+  return request(`/business/${businessId}/details/${section}/${itemId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+/* =========================================================
+   JSONB – DELETE ITEM
+========================================================= */
+export async function deleteBusinessItem(token, businessId, section, itemId) {
+  return request(`/business/${businessId}/details/${section}/${itemId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function createAvailability(token, businessId, payload) {
+  return request(`/business/${businessId}/availabilities`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listBusinessAvailabilities(token, businessId) {
+  return request(`/business/${businessId}/availabilities`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function deleteAvailability(token, businessId, availabilityId) {
+  return request(`/business/${businessId}/availabilities/${availabilityId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function listBusinessAppointments(token, businessId) {
+  return request(`/business/${businessId}/appointments`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function cancelAppointment(token, businessId, appointmentId) {
+  return request(
+    `/business/${businessId}/appointments/${appointmentId}/cancel`,
+    { method: "PATCH", headers: { Authorization: `Bearer ${token}` } }
+  );
+}
+
+export async function createCategory(token, businessId, payload) {
+  return request(`/business/${businessId}/categories`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listBusinessCategories(token, businessId) {
+  return request(`/business/${businessId}/categories`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function listPublicCategories(slug) {
+  return request(`/public/${slug}/categories`);
+}
+
+export async function listPublicCategoriesById(id) {
+  return request(`/public/id/${id}/categories`);
+}
+
+export async function getAvailability(
+  slugOrId,
+  categoryId,
+  start,
+  end,
+  byId = false
+) {
+  if (byId) {
+    return request(
+      `/public/id/${slugOrId}/categories/${categoryId}/availability?start=${start}&end=${end}`
+    );
+  }
+  return request(
+    `/public/${slugOrId}/categories/${categoryId}/availability?start=${start}&end=${end}`
+  );
+}
+
+export async function bookAppointment(slug, payload) {
+  return request(`/public/${slug}/appointments`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function bookAppointmentById(id, payload) {
+  return request(`/public/id/${id}/appointments`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export default {
+  login,
+  loginWithGoogle,
+  register,
+  updatePassword,
+  listPlans,
+  createPlan,
+  checkoutPlan,
+  createRazorpayOrder,
+  getPaymentProviders,
+  confirmCheckout,
+  confirmRazorpay,
+  createBusiness,
+  updateBusiness,
+  createCategory,
+  createAvailability,
+  listBusinessAvailabilities,
+  deleteAvailability,
+  listBusinessCategories,
+  listBusinessAppointments,
+  cancelAppointment,
+  listPublicCategories,
+  getAvailability,
+  bookAppointment,
+  listMyBusinesses,
+};
