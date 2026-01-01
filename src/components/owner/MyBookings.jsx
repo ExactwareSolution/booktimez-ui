@@ -123,20 +123,9 @@ const MyBookings = () => {
 
     load();
   }, [token]);
-  
-  const ROOT_DOMAIN = import.meta.env.VITE_ROOT_DOMAIN;
-
-  const isLocal = import.meta.env.VITE_ENV === "local";
-
-  const buildPublicUrl = (biz) => {
-    const protocol = isLocal ? "http" : "https";
-    const port = isLocal ? ":5173" : "";
-
-    return `${protocol}://${biz.slug}.${ROOT_DOMAIN}${port}/booking`;
-  };
-
-  // const buildPublicUrl = (biz) =>
-  //   `${frontBase.replace(/\/$/, "")}/business/${biz.slug}/${biz.id}`;
+  const frontBase = import.meta.env.VITE_APP_BASE || window.location.origin;
+  const buildPublicUrl = (biz) =>
+    `${frontBase.replace(/\/$/, "")}/business/${biz.slug}/${biz.id}`;
 
   const handleCopy = async (bizId, url) => {
     await navigator.clipboard.writeText(url);

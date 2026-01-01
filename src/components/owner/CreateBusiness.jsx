@@ -84,12 +84,9 @@ const CreateBusiness = () => {
       }
       try {
         setFetchError(null);
-        const res = await fetch(
-          "https://zd4hf92j-4000.inc1.devtunnels.ms/api/categories",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await fetch("http://localhost:5000/api/categories", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           throw new Error(
@@ -177,16 +174,13 @@ const CreateBusiness = () => {
         );
         fd.append("logo", logoFile);
 
-        res = await fetch(
-          "https://zd4hf92j-4000.inc1.devtunnels.ms/api/business",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            body: fd,
-          }
-        );
+        res = await fetch("http://localhost:5000/api/business", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: fd,
+        });
       } else {
         const body = {
           name: name.trim(),

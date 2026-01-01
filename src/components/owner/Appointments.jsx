@@ -1,5 +1,5 @@
 // Updated Appointments.jsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -9,19 +9,16 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-// Import the useLocalization hook
+import { useAuth } from "../../contexts/AuthContext";
 import { useLocalization } from "../../contexts/LocalizationContext";
+import api from "../../services/api";
 
 const PRIMARY_COLOR = "violet-600";
-// ... (rest of constants and mock data) ...
-
-const mockAppointments = [
-  // ... (Your mock data) ...
-];
 
 export default function Appointments() {
-  const { t } = useLocalization(); // Use localization hook
-  const [appointments, setAppointments] = useState(mockAppointments);
+  const { token } = useAuth();
+  const { t } = useLocalization();
+  const [appointments, setAppointments] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
@@ -30,26 +27,72 @@ export default function Appointments() {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const availablePageLimits = [5, 10, 25, 50];
 
-  // Use translation keys for statuses
-  const availableStatuses = [
-    t("all"),
-    t("completed"),
-    t("upcoming"),
-    t("cancelled"),
-  ];
+  const availableStatuses = ["All", "booked", "cancelled", "completed"];
 
-  // --- Filtering Logic (Memoized - Unchanged logic) ---
+  // --- Fetch Appointments ---
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!token) return;
+
+      try {
+        // 1. Fetch all businesses for the user
+        const businessesRes = await api.listMyBusinesses(token);
+        const businesses = (businessesRes || []).map((b) => b.business || b);
+
+        const allAppointments = [];
+
+        // 2. Fetch appointments for each business
+        await Promise.all(
+          businesses.map(async (b) => {
+            try {
+              const apptsRes = await api.listBusinessAppointments(token, b.id);
+              (apptsRes?.appointments || []).forEach((appt) =>
+                allAppointments.push({
+                  ...appt,
+                  _bizId: b.id,
+                  businessName: b.name,
+                })
+              );
+            } catch (err) {
+              console.error(
+                `Error loading appointments for business ${b.id}:`,
+                err
+              );
+            }
+          })
+        );
+
+        // 3. Normalize appointments
+        const normalized = allAppointments.map((a) => ({
+          id: a.id,
+          client: a.customerName || "Guest",
+          category: a.category || a.service || "Service",
+          dateTime: a.startAt,
+          status: a.status || "Upcoming",
+          link: `#${a.id}`,
+          businessId: a._bizId,
+          businessName: a.businessName,
+        }));
+
+        setAppointments(normalized);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      }
+    };
+
+    fetchAppointments();
+  }, [token]);
+
+  // --- Filtering Logic ---
   const filteredAppointments = useMemo(() => {
-    // ... (Filtering logic remains the same, comparing with internal keys/values, not translated labels) ...
     setCurrentPage(1);
-    return appointments.filter((appointment) => {
+    return appointments?.filter((appointment) => {
       const matchesSearch =
         appointment.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (appointment.service || appointment.category || "")
+        (appointment.category || "")
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
 
-      // Note: We use the English status keys in the data for filtering consistency ('All', 'Completed', etc.)
       const matchesStatus =
         filterStatus === "All" || appointment.status === filterStatus;
 
@@ -57,33 +100,21 @@ export default function Appointments() {
     });
   }, [appointments, searchTerm, filterStatus]);
 
-  // --- Pagination Logic (Calculations - Unchanged) ---
-  const totalItems = filteredAppointments.length;
+  // --- Pagination Calculations ---
+  const totalItems = filteredAppointments?.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const appointmentsOnPage = filteredAppointments.slice(startIndex, endIndex);
+  const appointmentsOnPage = filteredAppointments?.slice(startIndex, endIndex);
 
-  // Pagination Handlers (Unchanged)
-  const goToNextPage = () => {
-    /* ... */
-  };
-  const goToPrevPage = () => {
-    /* ... */
-  };
-  const handlePageLimitChange = (e) => {
-    /* ... */
-  };
-
-  // --- Helper to get status chip styling (Unchanged) ---
+  // --- Status Chip Styles ---
   const getStatusStyle = (status) => {
     switch (status) {
-      case "Completed":
+      case "booked":
         return "bg-green-100 text-green-700 border-green-300";
-      case "Cancelled":
+      case "cancelled":
         return "bg-red-100 text-red-700 border-red-300";
-      case "Upcoming":
+      case "completed":
         return "bg-yellow-100 text-yellow-700 border-yellow-300";
       default:
         return "bg-gray-100 text-gray-700 border-gray-300";
@@ -97,11 +128,10 @@ export default function Appointments() {
       </h2>
 
       <div className="bg-white p-4 md:p-6 rounded-xl shadow-md border border-violet-600">
-        {/* Search and Filter Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 ">
-          {/* Search Input (Translated placeholder) */}
-          <div className="w-full md:w-1/3 relative ">
-            <Search className="w-4 h-4  absolute left-3 top-1/2 transform -translate-y-1/2  text-violet-600" />
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <div className="w-full md:w-1/3 relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-violet-600" />
             <input
               type="text"
               placeholder={t("searchClientCategory")}
@@ -111,34 +141,29 @@ export default function Appointments() {
             />
           </div>
 
-          {/* Filter Dropdown (Translated options) */}
-          <div className="w-full md:w-auto relative ">
+          <div className="w-full md:w-auto relative">
             <Filter className="w-4 h-4 text-violet-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
             <select
-              // We use the English status keys for value to keep filtering logic consistent
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className={`w-full appearance-none pl-9 pr-8 py-2 border border-violet-600 rounded-lg text-sm focus:ring-2 focus:ring-violet-600 focus:border-violet-600 bg-white`}
             >
-              {["All", "Completed", "Upcoming", "Cancelled"].map(
-                (statusKey) => (
-                  <option key={statusKey} value={statusKey}>
-                    {statusKey === "All"
-                      ? t("filterByStatus")
-                      : t(statusKey.toLowerCase())}
-                  </option>
-                )
-              )}
+              {availableStatuses.map((statusKey) => (
+                <option key={statusKey} value={statusKey}>
+                  {statusKey === "All"
+                    ? t("filterByStatus")
+                    : t(statusKey.toLowerCase())}
+                </option>
+              ))}
             </select>
             <ChevronDown className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
-        {/* Appointment Table */}
+        {/* Appointments Table */}
         <div className="overflow-x-auto">
           {appointmentsOnPage.length > 0 ? (
             <table className="min-w-full divide-y divide-gray-200">
-              {/* Table Headings Translated */}
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -164,7 +189,6 @@ export default function Appointments() {
                     key={app.id}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    {/* Status Translated */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       {t(app.client)}
                     </td>
@@ -180,12 +204,9 @@ export default function Appointments() {
                           app.status
                         )}`}
                       >
-                        {t(app.status.toLowerCase())}{" "}
-                        {/* Translate status value */}
+                        {t(app.status.toLowerCase())}
                       </span>
                     </td>
-
-                    {/* Actions Translated */}
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <a href={`#${app.link}`} title={t("viewDetails")}>
                         {t("viewDetails")}
@@ -202,34 +223,55 @@ export default function Appointments() {
           )}
         </div>
 
-        {/* --- Pagination Controls (Translation needed for static text) --- */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-6 flex flex-col md:flex-row justify-between items-center border-t border-gray-200 pt-4">
-            {/* Page Status Translated */}
             <div className="text-sm text-gray-700 mb-3 md:mb-0">
-              {/* NOTE: Complex interpolation like this requires more sophisticated i18n, but simple concatenation is used here */}
-              Showing <span className="font-semibold">{startIndex + 1}</span> to{" "}
+              {t("showing")}{" "}
+              <span className="font-semibold">{startIndex + 1}</span> {t("to")}{" "}
               <span className="font-semibold">
                 {Math.min(endIndex, totalItems)}
               </span>{" "}
-              of <span className="font-semibold">{totalItems}</span> results
+              {t("of")} <span className="font-semibold">{totalItems}</span>{" "}
+              {t("results")}
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Items Per Page Dropdown Translated */}
+              {/* Items per page */}
               <div className="flex items-center space-x-2 text-sm text-gray-700">
-                <span>{/* Translation needed: Items per page: */}</span>
-                {/* ... dropdown content ... */}
+                <span>{t("itemsPerPage")}</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={handlePageLimitChange}
+                  className="ml-2 border border-violet-600 rounded-lg px-2 py-1 text-sm"
+                >
+                  {availablePageLimits.map((limit) => (
+                    <option key={limit} value={limit}>
+                      {limit}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Page Navigation Buttons Translated */}
+              {/* Page Navigation */}
               <div className="flex space-x-2">
-                {/* ... buttons ... */}
+                <button
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
                 <span className="flex items-center px-3 py-1 text-sm font-medium text-gray-700">
-                  Page {currentPage} of {totalPages}{" "}
-                  {/* Translation needed: Page X of Y */}
+                  {t("page")} {currentPage} {t("of")} {totalPages}
                 </span>
-                {/* ... buttons ... */}
+                <button
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>

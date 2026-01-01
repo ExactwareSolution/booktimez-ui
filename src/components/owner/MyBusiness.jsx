@@ -145,7 +145,7 @@ const MyBusiness = () => {
             </h1>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-bold uppercase mt-2">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-              {business.subscriptionStatus}
+              {business?.subscriptionStatus}
             </span>
           </div>
         </div>

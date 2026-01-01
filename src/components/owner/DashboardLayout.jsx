@@ -60,7 +60,7 @@ export default function DashboardLayout() {
         const res = await fetch(
           `${
             import.meta.env.VITE_API_BASE ||
-            "https://zd4hf92j-4000.inc1.devtunnels.ms/api"
+            "https://zd4hf92j-5000.inc1.devtunnels.ms/api"
           }/business`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -263,7 +263,7 @@ export default function DashboardLayout() {
 
         {/* SCROLLABLE MAIN CONTENT (Unchanged) */}
         <main
-          className="pt-20 p-8 h-500 "
+          className="pt-20 p-8 h-screen "
           style={{
             backgroundImage: `url(${bg})`,
           }}

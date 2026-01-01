@@ -9,13 +9,12 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    host: true, // allow external access
+    host: true,
     port: 5173,
-
-    // 👇 THIS IS THE KEY LINE
     allowedHosts: [
       "localhost",
-      ".booktimez.com", // allows ALL subdomains
+      ".booktimez.com",
+      "zd4hf92j-5173.inc1.devtunnels.ms",
     ],
   },
 });

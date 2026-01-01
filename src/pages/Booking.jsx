@@ -28,6 +28,10 @@ export default function Booking() {
   const [showModal, setShowModal] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
 
+  const isInvalidEmail = email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const isInvalidPhone = phone && phone.length > 0 && phone.length !== 10;
+
   useEffect(() => {
     async function load() {
       let res;
@@ -130,7 +134,10 @@ export default function Booking() {
 
   function handleCloseModal() {
     setShowModal(false);
-    navigate("/");
+
+    if (bookingResult && !bookingResult.error) {
+      navigate("/");
+    }
   }
 
   const UPLOADS_BASE =
@@ -251,16 +258,19 @@ export default function Booking() {
                       {slots.map((s) => (
                         <button
                           key={s.start}
-                          onClick={() => setChosenSlot(s)}
-                          disabled={busy}
+                          onClick={() => s.available && setChosenSlot(s)}
+                          disabled={busy || !s.available}
                           aria-pressed={
                             chosenSlot && chosenSlot.start === s.start
                           }
-                          className={`p-2 text-sm rounded border transition-transform transform hover:scale-105 focus:scale-105 ${
-                            chosenSlot && chosenSlot.start === s.start
-                              ? "bg-violet-600 text-white"
-                              : "bg-white text-gray-700"
-                          }`}
+                          className={`p-2 text-sm rounded border transition-transform
+    ${
+      !s.available
+        ? "bg-gray-200 text-gray-400 cursor-not-allowed line-through"
+        : chosenSlot && chosenSlot.start === s.start
+        ? "bg-violet-600 text-white scale-105"
+        : "bg-white text-gray-700 hover:scale-105"
+    }`}
                         >
                           <div className="font-medium">
                             {new Date(s.start).toLocaleTimeString([], {
@@ -268,7 +278,10 @@ export default function Booking() {
                               minute: "2-digit",
                             })}
                           </div>
-                          <div className="text-xs">{s.localLabel}</div>
+
+                          <div className="text-xs">
+                            {s.available ? s.localLabel : "Booked"}
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -286,16 +299,30 @@ export default function Booking() {
                   onChange={(e) => setName(e.target.value)}
                 />
                 <input
-                  className="col-span-1 p-2 border rounded"
+                  type="email"
+                  className={`col-span-1 p-2 border rounded ${
+                    isInvalidEmail ? "border-red-500" : ""
+                  }`}
                   placeholder={t("email")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+
                 <input
-                  className="col-span-1 p-2 border rounded"
-                  placeholder="Phone"
+                  className={`col-span-1 p-2 border rounded ${
+                    isInvalidPhone ? "border-red-500" : ""
+                  }`}
+                  placeholder="Phone (10 digits)"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  maxLength={10}
+                  inputMode="numeric"
+                  pattern="[0-9]{10}"
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    if (value.length <= 10) {
+                      setPhone(value);
+                    }
+                  }}
                 />
               </div>
 
