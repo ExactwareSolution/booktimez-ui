@@ -366,6 +366,15 @@ export async function bookAppointmentById(id, payload) {
   });
 }
 
+export async function getDashboardAnalytics(token) {
+  return request("/analytics/overview", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
 export default {
   login,
   loginWithGoogle,
@@ -391,4 +400,5 @@ export default {
   getAvailability,
   bookAppointment,
   listMyBusinesses,
+  getDashboardAnalytics,
 };

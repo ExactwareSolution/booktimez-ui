@@ -113,7 +113,7 @@ export default function Settings() {
     <button
       onClick={onClick}
       disabled={loading}
-      className="flex items-center justify-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 active:scale-95"
+      className="flex items-center justify-center gap-2 px-8 py-3 bg-violet-600 disabled:bg-violet-400 text-white rounded-xl font-bold transition-all shadow-lg shadow-violet-200 active:scale-95"
     >
       {loading ? (
         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -143,7 +143,7 @@ export default function Settings() {
       <Status />
       <FormGroup label="Full Name">
         <input
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50/50"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none bg-slate-50/50"
           value={profile.name}
           onChange={(e) => setProfile({ ...profile, name: e.target.value })}
         />
@@ -175,7 +175,7 @@ export default function Settings() {
                 onClick={() => setBizData({ ...bizData, type: key })}
                 className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
                   bizData.type === key
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-inner"
+                    ? "border-violet-600 bg-violet-50 text-violet-700 shadow-inner"
                     : "border-slate-100 bg-white text-slate-500 hover:border-slate-200"
                 }`}
               >
@@ -204,7 +204,7 @@ export default function Settings() {
                 {field.type === "textarea" ? (
                   <textarea
                     rows={3}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none"
                     value={bizData[field.id] || ""}
                     onChange={(e) =>
                       setBizData({ ...bizData, [field.id]: e.target.value })
@@ -213,7 +213,7 @@ export default function Settings() {
                 ) : (
                   <input
                     type={field.type}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none"
                     value={bizData[field.id] || ""}
                     onChange={(e) =>
                       setBizData({ ...bizData, [field.id]: e.target.value })
@@ -243,7 +243,7 @@ export default function Settings() {
       <Status />
       <FormGroup label="Logo Image URL">
         <input
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50/50"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none bg-slate-50/50"
           placeholder="https://..."
           value={branding.logoUrl}
           onChange={(e) =>
@@ -269,7 +269,7 @@ export default function Settings() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <FormGroup label="System Language">
           <select
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none bg-slate-50/50"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none appearance-none bg-slate-50/50"
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
           >
@@ -283,7 +283,7 @@ export default function Settings() {
 
         <FormGroup label="Timezone">
           <select
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none bg-slate-50/50"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none appearance-none bg-slate-50/50"
             value={localization.timezone}
             onChange={(e) => setLocalization({ timezone: e.target.value })}
           >
@@ -318,7 +318,7 @@ export default function Settings() {
         <FormGroup label="New Password">
           <input
             type="password"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50/50"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none bg-slate-50/50"
             value={security.newPassword}
             onChange={(e) =>
               setSecurity({ ...security, newPassword: e.target.value })
@@ -328,7 +328,7 @@ export default function Settings() {
         <FormGroup label="Confirm Password">
           <input
             type="password"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50/50"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none bg-slate-50/50"
             value={security.confirmPassword}
             onChange={(e) =>
               setSecurity({ ...security, confirmPassword: e.target.value })
@@ -389,7 +389,7 @@ export default function Settings() {
                 }}
                 className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl text-sm font-bold transition-all ${
                   activeTab === tab.id
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 translate-x-2"
+                    ? "bg-violet-600 text-white shadow-lg shadow-violet-100 translate-x-2"
                     : "bg-white text-slate-500 hover:bg-slate-50 border border-transparent hover:border-slate-200"
                 }`}
               >

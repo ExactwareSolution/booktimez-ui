@@ -5,7 +5,7 @@ const AddPlanModal = ({ isOpen, onClose, onSuccess }) => {
   const [form, setForm] = useState({
     code: "",
     name: "",
-    price: 0,
+    price: "",
     maxBookingsPerMonth: "",
     maxBusinesses: "",
     maxCategories: "",

@@ -2,12 +2,39 @@ import React, { useEffect, useState } from "react";
 import * as api from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocalization } from "../contexts/LocalizationContext";
+import { Check, X } from "lucide-react";
 
 export default function Plans() {
   const { token, user } = useAuth();
   const { t } = useLocalization();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const BoolIcon = ({ value, inverted = false }) => {
+    const isTrue = inverted ? !value : value;
+
+    return isTrue ? (
+      <Check className="inline w-4 h-4 text-green-500 ml-1" />
+    ) : (
+      <X className="inline w-4 h-4 text-red-500 ml-1" />
+    );
+  };
+
+  const languageMap = {
+    en: "English",
+    hi: "Hindi",
+    ar: "Arabic",
+  };
+
+  const formatLanguages = (langs = []) =>
+    langs.map((l) => languageMap[l] || l.toUpperCase()).join(", ");
+
+  const FeatureRow = ({ label, value, children }) => (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-slate-500">{label}</span>
+      <span className="font-medium text-slate-800">{children ?? value}</span>
+    </div>
+  );
 
   // Admin form state
   const [form, setForm] = useState({
@@ -191,66 +218,96 @@ export default function Plans() {
 
         <div className="grid md:grid-cols-3 gap-8">
           {loading ? (
-            <div>Loading...</div>
+            <div className="text-center text-slate-500">Loading plans...</div>
           ) : (
             plans.map((plan) => (
               <div
                 key={plan.id || plan.name}
-                className={`rounded-2xl transition-all duration-300 ${
+                className={`relative rounded-2xl p-8 transition-all duration-300 ${
                   plan.recommended
-                    ? "ring-2 ring-slate-900 shadow-xl scale-105 bg-slate-900 text-white p-8"
-                    : "border border-slate-200 bg-white p-8 hover:border-slate-300 hover:shadow-md"
+                    ? "bg-slate-900 text-white shadow-2xl scale-[1.04]"
+                    : "bg-white border border-slate-200 hover:shadow-lg"
                 }`}
               >
+                {/* Recommended Badge */}
+                {plan.recommended && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-violet-600 text-white text-xs font-bold tracking-wide">
+                    MOST POPULAR
+                  </div>
+                )}
+
+                {/* Plan Header */}
                 <h3
-                  className={`text-2xl font-bold mb-2 ${
+                  className={`text-2xl font-bold mb-1 ${
                     plan.recommended ? "text-white" : "text-[#0d0950]"
                   }`}
                 >
                   {plan.name}
                 </h3>
-                <div
-                  className={`mb-6 ${
-                    plan.recommended ? "text-slate-100" : "text-slate-600"
+
+                <p
+                  className={`text-sm mb-6 ${
+                    plan.recommended ? "text-slate-300" : "text-slate-500"
                   }`}
                 >
+                  Perfect for growing businesses
+                </p>
+
+                {/* Price */}
+                <div className="mb-8">
                   <span
-                    className={`text-4xl font-bold ${
+                    className={`text-4xl font-extrabold ${
                       plan.recommended ? "text-white" : "text-[#0d0950]"
                     }`}
                   >
-                    ${(plan.monthlyPriceCents / 100).toFixed(0)}
+                    ${(plan.price / 100).toFixed(0)}
                   </span>
-                  <span className="text-sm ml-2">Per month</span>
+                  <span className="ml-2 text-sm opacity-70">/ month</span>
                 </div>
 
+                {/* CTA */}
                 <button
                   onClick={() => handleUpgrade(plan)}
-                  className={`w-full mb-8 py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                  className={`w-full mb-8 py-3 rounded-xl font-semibold transition-all ${
                     plan.recommended
-                      ? "bg-white text-[#0d0950] hover:bg-slate-50"
-                      : "border border-slate-300 text-[#0d0950] hover:bg-slate-50"
+                      ? "bg-white text-[#0d0950] hover:bg-slate-100"
+                      : "border border-slate-900 text-[#0d0950] hover:bg-slate-900 hover:text-white"
                   }`}
                 >
-                  {plan.monthlyPriceCents > 0
-                    ? t("selectPlan")
-                    : t("chooseYourPlan")}
+                  {plan.price > 0 ? t("selectPlan") : t("chooseYourPlan")}
                 </button>
 
+                {/* Features */}
                 <div
-                  className={`space-y-3 ${
-                    plan.recommended ? "text-slate-100" : "text-slate-600"
+                  className={`space-y-4 pt-6 border-t ${
+                    plan.recommended
+                      ? "border-slate-700 text-slate-200"
+                      : "border-slate-200 text-slate-700"
                   }`}
                 >
-                  <div className="text-sm">
-                    Max bookings: {plan.maxBookingsPerMonth || "—"}
-                  </div>
-                  <div className="text-sm">
-                    Max categories: {plan.maxCategories || "—"}
-                  </div>
-                  <div className="text-sm">
-                    Languages: {(plan.languages || []).join(", ")}
-                  </div>
+                  <FeatureRow label="Max Bookings">
+                    {plan.maxBookingsPerMonth ?? "Unlimited"}
+                  </FeatureRow>
+
+                  <FeatureRow label="Categories">
+                    {plan.maxCategories ?? "Unlimited"}
+                  </FeatureRow>
+
+                  <FeatureRow label="Businesses">
+                    {plan.maxBusinesses ?? "Unlimited"}
+                  </FeatureRow>
+
+                  <FeatureRow label="Branding Removed">
+                    <BoolIcon value={plan.brandingRemoved} />
+                  </FeatureRow>
+
+                  <FeatureRow label="Notifications">
+                    <BoolIcon value={plan.notificationsIncluded} />
+                  </FeatureRow>
+
+                  <FeatureRow label="Languages">
+                    {formatLanguages(plan.languages)}
+                  </FeatureRow>
                 </div>
               </div>
             ))
