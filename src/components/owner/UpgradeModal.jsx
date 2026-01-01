@@ -494,23 +494,24 @@
 // export default UpgradeModal;
 
 import React, { useState, useEffect } from "react";
-import {
-  X,
-  CheckCircle,
-  DollarSign,
-  Zap,
-  Rocket,
-  Check,
-  CreditCard,
-  Loader,
-} from "lucide-react";
+import { X, DollarSign, Zap, Rocket, Check, Loader } from "lucide-react";
 import { useLocalization } from "../../contexts/LocalizationContext";
 import { useAuth } from "../../contexts/AuthContext";
 import api from "../../services/api";
 
+/* =======================
+   CURRENCY CONFIG
+======================= */
+const USD_RATE = 89.99; // 1 USD = 89.99 INR
+
+const formatUSD = (inr) => {
+  if (!inr) return "0.00";
+  return (Number(inr) / USD_RATE).toFixed(2);
+};
+
 const UpgradeModal = ({ onClose }) => {
   const [plans, setPlans] = useState([]);
-  const [view, setView] = useState("plans"); // 'plans' | 'provider'
+  const [view, setView] = useState("plans"); // plans | provider
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [fetchingPlans, setFetchingPlans] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -519,7 +520,9 @@ const UpgradeModal = ({ onClose }) => {
   const { t } = useLocalization();
   const { token } = useAuth();
 
-  // Helper to map icons based on plan code
+  /* =======================
+     ICON MAPPER
+  ======================= */
   const getPlanIcon = (code = "") => {
     const c = code.toLowerCase();
     if (c === "pro") return Rocket;
@@ -527,18 +530,15 @@ const UpgradeModal = ({ onClose }) => {
     return DollarSign;
   };
 
-  /* ---------------- FETCH PLANS ---------------- */
+  /* =======================
+     FETCH PLANS
+  ======================= */
   useEffect(() => {
     const fetchPlans = async () => {
       try {
         setFetchingPlans(true);
-        const response = await api.listPlans(token);
-        // Handle the { plans: [] } structure
-        if (response && response.plans) {
-          setPlans(response.plans);
-        } else if (Array.isArray(response)) {
-          setPlans(response);
-        }
+        const res = await api.listPlans(token);
+        setPlans(res?.plans || res || []);
       } catch (err) {
         console.error("Failed to fetch plans", err);
       } finally {
@@ -548,48 +548,60 @@ const UpgradeModal = ({ onClose }) => {
 
     fetchPlans();
 
-    // Handle Stripe Redirect Success logic
+    // Stripe success redirect
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
     if (sessionId) {
       api
         .confirmStripe(token, { sessionId })
         .then((res) => {
-          if (res?.planId) updateLocalStoragePlan(res.planId);
+          if (res?.planId) {
+            updateLocalStoragePlan({
+              id: res.planId,
+              code: res.planCode,
+              name: res.planName,
+            });
+          }
           window.history.replaceState({}, "", "/dashboard/bookings");
         })
         .catch(console.error);
     }
   }, [token]);
 
-  const updateLocalStoragePlan = (newPlanId) => {
+  /* =======================
+     LOCAL STORAGE UPDATE
+  ======================= */
+  const updateLocalStoragePlan = (plan) => {
     try {
       const raw = localStorage.getItem("btz_auth");
       if (!raw) return;
+
       const data = JSON.parse(raw);
-      data.user.planId = newPlanId;
+      data.user.planId = plan.id;
+      data.user.planCode = plan.code;
+      data.user.planName = plan.name;
+
       localStorage.setItem("btz_auth", JSON.stringify(data));
     } catch (err) {
-      console.error("Failed to update localStorage", err);
+      console.error("LocalStorage update failed", err);
     }
   };
 
-  /* ---------------- VIEWS ---------------- */
-
+  /* =======================
+     PLAN SELECTION
+  ======================= */
   const PlanSelection = () => {
     if (fetchingPlans) {
       return (
         <div className="flex flex-col items-center justify-center h-96">
           <Loader className="w-10 h-10 animate-spin text-violet-600" />
-          <p className="mt-4 text-gray-500 font-medium">
-            {t("loadingPlans") || "Fetching plans..."}
-          </p>
+          <p className="mt-4 text-gray-500">Fetching plans…</p>
         </div>
       );
     }
 
     return (
-      <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="space-y-10">
         <header className="text-center">
           <h2 className="text-4xl font-extrabold text-gray-900">
             {t("chooseYourPlan")}
@@ -602,50 +614,38 @@ const UpgradeModal = ({ onClose }) => {
             const Icon = getPlanIcon(plan.code || plan.name);
             const isSelected = selectedPlan?.id === plan.id;
 
-            // Generate features from your specific API fields
             const features = [
-              `${plan.maxBookingsPerMonth} Bookings/mo`,
-              `${plan.maxBusinesses} Business Profile(s)`,
-              plan.notificationsIncluded ? "Notifications Included" : null,
-              plan.brandingRemoved ? "No Branding" : null,
+              `${plan.maxBookingsPerMonth} bookings / month`,
+              `${plan.maxBusinesses} business profiles`,
+              plan.notificationsIncluded && "Notifications included",
+              plan.brandingRemoved && "No branding",
             ].filter(Boolean);
 
             return (
               <div
                 key={plan.id}
                 onClick={() => setSelectedPlan(plan)}
-                className={`p-8 rounded-[2rem] shadow-lg border-2 transition-all duration-300 cursor-pointer flex flex-col ${
+                className={`p-8 rounded-3xl border-2 cursor-pointer transition-all flex flex-col ${
                   isSelected
-                    ? "border-violet-600 ring-4 ring-violet-100 bg-white"
-                    : "border-gray-100 hover:border-violet-200 bg-white"
-                } ${plan.recommended ? "relative border-violet-500" : ""}`}
+                    ? "border-violet-600 ring-4 ring-violet-100"
+                    : "border-gray-100 hover:border-violet-200"
+                }`}
               >
-                {plan.recommended && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-violet-600 text-white px-4 py-1 rounded-full text-xs font-bold">
-                    {t("recommended")}
-                  </div>
-                )}
-
                 <Icon className="w-10 h-10 text-violet-600 mb-4" />
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {plan.name}
-                </h3>
+                <h3 className="text-2xl font-bold">{plan.name}</h3>
 
                 <div className="mt-4 mb-2">
-                  <span className="text-4xl font-black text-gray-900">
-                    ₹{plan.price}
+                  <span className="text-4xl font-black">
+                    ${formatUSD(plan.price)}
                   </span>
-                  <span className="text-gray-400 font-medium ml-1">/mo</span>
+                  <span className="text-gray-400 ml-1">/mo</span>
                 </div>
 
-                <ul className="space-y-3 mb-8 flex-1 mt-6">
-                  {features.map((feature, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start text-sm text-gray-600"
-                    >
-                      <Check className="w-4 h-4 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
-                      {feature}
+                <ul className="mt-6 space-y-3 flex-1">
+                  {features.map((f, i) => (
+                    <li key={i} className="flex text-sm text-gray-600">
+                      <Check className="w-4 h-4 mr-2 text-green-500" />
+                      {f}
                     </li>
                   ))}
                 </ul>
@@ -657,13 +657,13 @@ const UpgradeModal = ({ onClose }) => {
                     setSelectedPlan(plan);
                     setView("provider");
                   }}
-                  className={`w-full py-4 rounded-xl font-bold transition-all ${
+                  className={`mt-6 py-4 rounded-xl font-bold ${
                     isSelected
-                      ? "bg-violet-600 text-white shadow-lg"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      ? "bg-violet-600 text-white"
+                      : "bg-slate-100 hover:bg-slate-200"
                   }`}
                 >
-                  {plan.price > 0 ? t("selectPlan") : t("chooseYourPlan")}
+                  {t("selectPlan")}
                 </button>
               </div>
             );
@@ -673,6 +673,9 @@ const UpgradeModal = ({ onClose }) => {
     );
   };
 
+  /* =======================
+     PROVIDER SELECTION
+  ======================= */
   const ProviderSelection = () => {
     const handleProceed = async () => {
       if (!selectedPlan || !token) return;
@@ -681,26 +684,38 @@ const UpgradeModal = ({ onClose }) => {
       try {
         if (provider === "razorpay") {
           const resp = await api.createRazorpayOrder(token, selectedPlan.id);
+
           if (resp?.order) {
             const script = document.createElement("script");
             script.src = "https://checkout.razorpay.com/v1/checkout.js";
             document.body.appendChild(script);
+
             script.onload = () => {
               const rzp = new window.Razorpay({
                 key: resp.keyId,
-                amount: resp.order.amount,
+                amount: resp.order.amount, // INR × 100 (backend)
                 currency: resp.order.currency,
                 name: selectedPlan.name,
                 order_id: resp.order.id,
                 handler: async (response) => {
                   const confirm = await api.confirmRazorpay(token, {
-                    ...response,
-                    planId: selectedPlan.id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature,
                   });
-                  if (confirm?.ok) window.location.href = "/dashboard/bookings";
+
+                  if (confirm?.ok) {
+                    updateLocalStoragePlan({
+                      id: confirm.planId,
+                      code: confirm.planCode,
+                      name: selectedPlan.name,
+                    });
+                    window.location.href = "/dashboard/bookings";
+                  }
                 },
                 theme: { color: "#7c3aed" },
               });
+
               rzp.open();
               setIsProcessing(false);
             };
@@ -710,35 +725,30 @@ const UpgradeModal = ({ onClose }) => {
           if (resp?.url) window.location.href = resp.url;
         }
       } catch (err) {
+        console.error(err);
         alert("Payment initialization failed");
         setIsProcessing(false);
       }
     };
 
     return (
-      <div className="max-w-xl mx-auto bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-2xl">
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">
-          {t("paymentMethod")}
-        </h3>
-        <p className="text-slate-500 mb-8">Upgrade to {selectedPlan.name}</p>
+      <div className="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-2xl">
+        <h3 className="text-2xl font-bold">{t("paymentMethod")}</h3>
+        <p className="text-gray-500 mb-8">Upgrade to {selectedPlan.name}</p>
 
         <div className="space-y-4 mb-8">
           {["stripe", "razorpay"].map((p) => (
             <button
               key={p}
               onClick={() => setProvider(p)}
-              className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all ${
+              className={`w-full p-5 rounded-2xl border-2 flex justify-between ${
                 provider === p
                   ? "border-violet-600 bg-violet-50"
                   : "border-slate-100"
               }`}
             >
               <span className="font-bold capitalize">{p}</span>
-              <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  provider === p ? "border-violet-600" : "border-slate-300"
-                }`}
-              >
+              <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center">
                 {provider === p && (
                   <div className="w-2.5 h-2.5 bg-violet-600 rounded-full" />
                 )}
@@ -750,18 +760,18 @@ const UpgradeModal = ({ onClose }) => {
         <button
           onClick={handleProceed}
           disabled={isProcessing}
-          className="w-full py-4 bg-violet-600 text-white rounded-xl font-bold flex items-center justify-center gap-2"
+          className="w-full py-4 bg-violet-600 text-white rounded-xl font-bold"
         >
           {isProcessing ? (
-            <Loader className="animate-spin" />
+            <Loader className="animate-spin mx-auto" />
           ) : (
-            `${t("payNowPrefix")} ₹${selectedPlan.price}`
+            `${t("payNowPrefix")} $${formatUSD(selectedPlan.price)}`
           )}
         </button>
 
         <button
           onClick={() => setView("plans")}
-          className="w-full mt-4 text-slate-400 text-sm font-medium"
+          className="w-full mt-4 text-sm text-gray-400"
         >
           {t("changePlan")}
         </button>
@@ -771,20 +781,12 @@ const UpgradeModal = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto">
-      <div className="min-h-screen p-4 md:p-12">
+      <div className="min-h-screen p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-12">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-violet-600 rounded-lg" />
-              <span className="font-black text-xl tracking-tighter uppercase text-slate-900">
-                Upgrade
-              </span>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white rounded-full border border-transparent hover:border-slate-200 transition-all text-slate-400 hover:text-slate-900"
-            >
-              <X className="w-6 h-6" />
+          <div className="flex justify-between mb-10">
+            <h1 className="text-xl font-black">Upgrade</h1>
+            <button onClick={onClose}>
+              <X />
             </button>
           </div>
 

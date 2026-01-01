@@ -189,37 +189,39 @@ export default function DashboardLayout() {
 
         {/* ================= BOTTOM SECTION ================= */}
         <div className="p-4 border-t border-gray-100 w-full space-y-2 flex-shrink-0">
-          {/* PLAN / UPGRADE BUTTON (Using handleUpgradeClick) */}
-          <div className="py-2.5 flex items-center justify-center">
-            {sidebarOpen ? (
-              <button
-                onClick={handleUpgradeClick}
-                className={`flex items-center justify-between w-full
-                py-2 px-3 rounded-lg text-gray-800
-                hover:bg-green-100 active:bg-green-200 transition-colors`}
-              >
-                <div className="flex flex-col min-w-0 text-left">
-                  <span className="text-sm font-semibold truncate">
-                    {user?.name || "User"}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {user?.planId || "Free"}
-                  </span>
-                </div>
-                <DollarSign className="w-4 h-4 text-yellow-500" />
-              </button>
-            ) : (
-              <button
-                onClick={handleUpgradeClick}
-                className={`flex items-center justify-center w-full py-3.5 rounded-lg ${PLAN_BG} hover:bg-yellow-200 transition-colors`}
-                title="Upgrade Plan"
-              >
-                <DollarSign className={`w-6 h-6 ${PLAN_TEXT}`} />
-              </button>
-            )}
-          </div>
+          {/* PLAN / UPGRADE BUTTON */}
+          {role !== "admin" && (
+            <div className="py-2.5 flex items-center justify-center">
+              {sidebarOpen ? (
+                <button
+                  onClick={handleUpgradeClick}
+                  className={`flex items-center justify-between w-full
+          py-2 px-3 rounded-lg text-gray-800
+          hover:bg-green-100 active:bg-green-200 transition-colors`}
+                >
+                  <div className="flex flex-col min-w-0 text-left">
+                    <span className="text-sm font-semibold truncate">
+                      {user?.name || "User"}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {user?.planCode || "Free"}
+                    </span>
+                  </div>
+                  <DollarSign className="w-4 h-4 text-yellow-500" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleUpgradeClick}
+                  className={`flex items-center justify-center w-full py-3.5 rounded-lg ${PLAN_BG} hover:bg-yellow-200 transition-colors`}
+                  title="Upgrade Plan"
+                >
+                  <DollarSign className={`w-6 h-6 ${PLAN_TEXT}`} />
+                </button>
+              )}
+            </div>
+          )}
 
-          {/* LOGOUT (Unchanged) */}
+          {/* LOGOUT – always visible */}
           <button
             onClick={logout}
             className={`${buttonBase} ${
@@ -249,16 +251,18 @@ export default function DashboardLayout() {
             {businessName || "Dashboard"}
           </h2>
 
-          <div className="flex items-center gap-4">
-            {/* UPGRADE BUTTON (Using handleUpgradeClick) */}
-            <button
-              onClick={handleUpgradeClick}
-              className={`px-4 py-1.5 text-sm font-semibold border rounded-full flex items-center gap-1 transition-colors ${PRIMARY_COLOR} ${BORDER_PRIMARY} ${HOVER_BG}`}
-            >
-              <Zap className="w-4 h-4" />
-              Upgrade
-            </button>
-          </div>
+          {role !== "admin" && (
+            <div className="flex items-center gap-4">
+              {/* UPGRADE BUTTON (Using handleUpgradeClick) */}
+              <button
+                onClick={handleUpgradeClick}
+                className={`px-4 py-1.5 text-sm font-semibold border rounded-full flex items-center gap-1 transition-colors ${PRIMARY_COLOR} ${BORDER_PRIMARY} ${HOVER_BG}`}
+              >
+                <Zap className="w-4 h-4" />
+                Upgrade
+              </button>
+            </div>
+          )}
         </header>
 
         {/* SCROLLABLE MAIN CONTENT (Unchanged) */}
