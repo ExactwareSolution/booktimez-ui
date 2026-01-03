@@ -198,11 +198,35 @@ const en = {
   thursday: "Thursday",
   friday: "Friday",
   saturday: "Saturday",
+
+  resourceAdded: "Resource added",
+  resourceUpdated: "Resource updated",
+  resourceDeleted: "Resource deleted",
+  addResource: "Add Resource",
+  resourceName: "Resource Name",
+  selectResources: "Select Resources",
+  updateSlot: "Update Slot",
+  startTime: "Start Time",
+  endTime: "End Time",
+  slotDuration: "Slot Duration",
+  saveChanges: "Save Changes",
 };
 
 const hi = {
   /* App */
   appName: "बुकटाइम्स",
+
+  resourceAdded: "संसाधन जोड़ा गया",
+  resourceUpdated: "संसाधन अपडेट किया गया",
+  resourceDeleted: "संसाधन हटाया गया",
+  addResource: "संसाधन जोड़ें",
+  resourcName: "संसाधन नाम",
+  selectResources: "संसाधन चुनें",
+  updateSlot: "स्लॉट अपडेट करें",
+  startTime: "प्रारंभ समय",
+  endTime: "समाप्ति समय",
+  slotDuration: "स्लॉट अवधि",
+  saveChanges: "परिवर्तन सहेजें",
 
   /* Navigation / Common */
   home: "होम",
@@ -409,6 +433,18 @@ const hi = {
 const ar = {
   /* App */
   appName: "بوكتايمز",
+
+  resourceAdded: "تمت إضافة المورد",
+  resourceUpdated: "تم تحديث المورد",
+  resourceDeleted: "تم حذف المورد",
+  addResource: "إضافة مورد",
+  resourceName: "اسم المورد",
+  selectResources: "حدد الموارد",
+  updateSlot: "تحديث الشريحة",
+  startTime: "وقت البدء",
+  endTime: "وقت الانتهاء",
+  slotDuration: "مدة الشريحة",
+  saveChanges: "حفظ التغييرات",
 
   /* Navigation / Common */
   home: "الصفحة الرئيسية",

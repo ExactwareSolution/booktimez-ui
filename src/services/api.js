@@ -276,26 +276,203 @@ export async function deleteBusinessItem(token, businessId, section, itemId) {
   });
 }
 
+// --------------------
+// CREATE AVAILABILITY
+// --------------------
 export async function createAvailability(token, businessId, payload) {
-  return request(`/business/${businessId}/availabilities`, {
+  if (!token || !businessId || !payload) {
+    throw new Error("Missing required parameters for createAvailability");
+  }
+
+  // 'request' returns already parsed JSON
+  const res = await request(`/business/${businessId}/availabilities`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(payload),
   });
+
+  // Check for error field from API
+  if (res?.error) {
+    throw new Error(res.error || "Failed to create availability");
+  }
+
+  return res; // ✅ already parsed JSON
 }
 
+// --------------------
+// LIST AVAILABILITIES
+// --------------------
 export async function listBusinessAvailabilities(token, businessId) {
-  return request(`/business/${businessId}/availabilities`, {
+  if (!token || !businessId) {
+    throw new Error("Missing required parameters");
+  }
+
+  const res = await request(`/business/${businessId}/availabilities`, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
   });
+
+  // If request wrapper returns the raw Response object, parse it.
+  // If it's already an object (like axios), return it directly.
+  if (res && typeof res.json === "function") {
+    return await res.json();
+  }
+
+  return res;
 }
 
+// --------------------
+// DELETE AVAILABILITY
+// --------------------
 export async function deleteAvailability(token, businessId, availabilityId) {
-  return request(`/business/${businessId}/availabilities/${availabilityId}`, {
-    method: "DELETE",
+  if (!token || !businessId || !availabilityId) {
+    throw new Error("Missing required parameters for deleteAvailability");
+  }
+
+  const res = await request(
+    `/business/${businessId}/availabilities/${availabilityId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  // If res has 'ok', it might be a raw fetch Response
+  if (res.ok !== undefined && typeof res.json === "function") {
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || "Failed to delete availability");
+    }
+    return await res.json();
+  }
+
+  // Otherwise, assume it's already parsed JSON
+  return res;
+}
+
+// --------------------
+// CREATE RESOURCE
+// --------------------
+// --------------------
+// CREATE RESOURCE
+// --------------------
+export async function createResource(token, businessId, payload) {
+  if (!token || !businessId || !payload || !payload.name) {
+    throw new Error("Missing required parameters for createResource");
+  }
+
+  // request() ALREADY returns parsed JSON
+  const data = await request(`/resources`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ...payload, businessId }),
+  });
+
+  // If backend sends { error: "..." }
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data; // ✅ resource object
+}
+
+// --------------------
+// LIST RESOURCES
+// --------------------
+export async function listBusinessResources(token, businessId) {
+  if (!token || !businessId) {
+    throw new Error("Missing required parameters");
+  }
+
+  const data = await request(`/resources/business/${businessId}`, {
+    method: "GET",
     headers: { Authorization: `Bearer ${token}` },
   });
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data; // array
+}
+
+// --------------------
+// GET SINGLE RESOURCE
+// --------------------
+export async function getResource(token, resourceId) {
+  if (!token || !resourceId) {
+    throw new Error("Missing required parameters for getResource");
+  }
+
+  const res = await request(`/resources/${resourceId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || "Failed to fetch resource");
+  }
+
+  return res.json();
+}
+
+// --------------------
+// UPDATE RESOURCE
+// --------------------
+export async function updateResource(token, resourceId, payload) {
+  if (!token || !resourceId || !payload) {
+    throw new Error("Missing required parameters for updateResource");
+  }
+
+  const res = await request(`/resources/${resourceId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || "Failed to update resource");
+  }
+
+  return res.json();
+}
+
+// --------------------
+// DELETE RESOURCE
+// --------------------
+export async function deleteResource(token, resourceId) {
+  if (!token || !resourceId) {
+    throw new Error("Missing required parameters for deleteResource");
+  }
+
+  const res = await request(`/resources/${resourceId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || "Failed to delete resource");
+  }
+
+  return res.json();
 }
 
 export async function listBusinessAppointments(token, businessId) {
@@ -401,4 +578,9 @@ export default {
   bookAppointment,
   listMyBusinesses,
   getDashboardAnalytics,
+  createResource,
+  listBusinessResources,
+  deleteResource,
+  getResource,
+  updateResource,
 };
