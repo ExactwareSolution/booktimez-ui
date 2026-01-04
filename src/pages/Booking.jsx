@@ -462,8 +462,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import * as api from "../services/api";
 import { useLocalization } from "../contexts/LocalizationContext";
 import logo from "../assets/BookingTimez.jpg";
+import { DateTime } from "luxon";
 
 export default function Booking() {
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const { t } = useLocalization();
   const { slug, id } = useParams();
   const navigate = useNavigate();
@@ -757,38 +759,52 @@ export default function Booking() {
                           {t("noSlots")}
                         </div>
                       )}
-                      {slots.map((s) => (
-                        <button
-                          key={s.start}
-                          onClick={() => s.available && setChosenSlot(s)}
-                          disabled={busy || !s.available}
-                          className={`p-2 text-sm rounded border-1 transition-transform ${
-                            !s.available
-                              ? "bg-gray-200 text-gray-400 cursor-not-allowed line-through"
-                              : chosenSlot?.start === s.start
-                              ? "bg-violet-600 text-white scale-105"
-                              : "bg-white text-gray-700 hover:scale-105 border-green-500"
-                          }`}
-                        >
-                          <div className="font-medium">
-                            {new Date(s.start).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </div>
-                          <div
-                            className={`text-xs ${
-                              chosenSlot?.start === s.start
-                                ? "text-white"
-                                : "text-gray-500"
+                      {slots.map((s) => {
+                        // Convert UTC → business timezone
+                        const businessTime = DateTime.fromISO(s.start, {
+                          zone: "utc",
+                        }).setZone(business.timezone);
+
+                        // Convert UTC → user's local timezone
+                        const userTime = DateTime.fromISO(s.start, {
+                          zone: "utc",
+                        }).setZone(userTimezone);
+
+                        return (
+                          <button
+                            key={s.start}
+                            onClick={() => s.available && setChosenSlot(s)}
+                            disabled={!s.available}
+                            className={`p-2 text-sm rounded border-1 transition-transform ${
+                              !s.available
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed line-through"
+                                : chosenSlot?.start === s.start
+                                ? "bg-violet-600 text-white scale-105"
+                                : "bg-white text-gray-700 hover:scale-105 border-green-500"
                             }`}
                           >
-                            {s.available
-                              ? `${s.availableCount} / ${s.totalResources} Available`
-                              : "Booked"}
-                          </div>
-                        </button>
-                      ))}
+                            <div className="font-medium">
+                              {/* Show time in business timezone */}
+                              {businessTime.toFormat("HH:mm")}
+                              {/* Show user local time in parentheses */}
+                              <span className="text-xs text-gray-400 ml-1">
+                                ({userTime.toFormat("HH:mm")})
+                              </span>
+                            </div>
+                            <div
+                              className={`text-xs ${
+                                chosenSlot?.start === s.start
+                                  ? "text-white"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {s.available
+                                ? `${s.availableCount} / ${s.totalResources} Available`
+                                : "Booked"}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

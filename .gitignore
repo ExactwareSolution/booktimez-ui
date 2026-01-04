@@ -11,10 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
-
+uploads
 # Environment files
 .env
 !.demoenv
+
 
 # Editor directories and files
 .vscode/*

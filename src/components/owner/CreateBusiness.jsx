@@ -14,6 +14,8 @@ import {
   Upload,
 } from "lucide-react";
 
+import rawTimezones from "./json_data/timezones.json";
+
 /**
  * CreateBusiness.jsx
  * - react-select multi dropdown for categories
@@ -267,6 +269,11 @@ const CreateBusiness = () => {
     placeholder: (base) => ({ ...base, color: "#6b7280" }),
   };
 
+  const timezones = rawTimezones.map((tz) => ({
+    value: tz.value,
+    label: tz.text, // use the human-readable text
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-100">
@@ -393,16 +400,14 @@ const CreateBusiness = () => {
                 <Clock className="w-4 h-4 text-violet-600" />
                 Timezone
               </label>
-              <select
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-violet-200 focus:border-violet-500"
-              >
-                <option value="UTC">UTC</option>
-                <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                <option value="America/New_York">America/New York (EST)</option>
-                <option value="Europe/London">Europe/London (GMT)</option>
-              </select>
+              <Select
+                options={timezones}
+                value={timezones.find((tz) => tz.value === timezone)}
+                onChange={(opt) => setTimezone(opt.value)}
+                isSearchable
+                placeholder="Select timezone..."
+                styles={selectStyles}
+              />
             </div>
 
             <div>
