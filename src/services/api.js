@@ -489,11 +489,13 @@ export async function cancelAppointment(token, businessId, appointmentId) {
   );
 }
 
-export async function createCategory(token, businessId, payload) {
-  return request(`/business/${businessId}/categories`, {
+export async function createCategory(token, formData) {
+  return request(`/categories`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: JSON.stringify(payload),
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData, // ✅ SEND FORMDATA DIRECTLY
   });
 }
 

@@ -21,6 +21,8 @@ import {
   DollarSign,
   CalendarCheck,
   BriefcaseBusiness,
+  Bell,
+  User,
 } from "lucide-react";
 import { GrPlan } from "react-icons/gr";
 import { BiCategoryAlt } from "react-icons/bi";
@@ -96,6 +98,7 @@ export default function DashboardLayout() {
   const ownerLinks = [
     ...baseLinks,
     { to: "/dashboard/business", label: "Business", icon: BriefcaseBusiness },
+    { to: "/dashboard/resources", label: "Resources", icon: User },
     { to: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
 
@@ -139,6 +142,11 @@ export default function DashboardLayout() {
     // } else {
     //   setSearchParams({ planSelection: 'true' });
     // }
+  };
+
+  const handleNotificationClick = () => {
+    // Placeholder for notification click handling
+    alert("Notifications clicked!");
   };
 
   // 3. Handler to close the modal by removing the search param
@@ -251,9 +259,17 @@ export default function DashboardLayout() {
             {businessName || "Dashboard"}
           </h2>
 
-          {role !== "admin" && (
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-4">
-              {/* UPGRADE BUTTON (Using handleUpgradeClick) */}
+              <button
+                onClick={handleNotificationClick}
+                className={`px-4 py-1.5 text-sm font-semibold  flex items-center gap-1 transition-colors `}
+              >
+                <Bell className="w-6 h-6 text-gray-600" />
+              </button>
+            </div>
+            {/* UPGRADE BUTTON (Using handleUpgradeClick) */}
+            {role !== "admin" && (
               <button
                 onClick={handleUpgradeClick}
                 className={`px-4 py-1.5 text-sm font-semibold border rounded-full flex items-center gap-1 transition-colors ${PRIMARY_COLOR} ${BORDER_PRIMARY} ${HOVER_BG}`}
@@ -261,8 +277,8 @@ export default function DashboardLayout() {
                 <Zap className="w-4 h-4" />
                 Upgrade
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </header>
 
         {/* SCROLLABLE MAIN CONTENT (Unchanged) */}

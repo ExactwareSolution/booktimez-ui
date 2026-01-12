@@ -22,6 +22,7 @@ import Category from "./components/admin/Category";
 import DashboardIndexRedirect from "./components/DashboardIndexRedirect";
 import Payments from "./components/admin/Payments";
 import MyBusiness from "./components/owner/MyBusiness";
+import Resources from "./components/owner/Resources";
 
 function App() {
   const location = useLocation();
@@ -59,6 +60,7 @@ function App() {
           <Route path="availability" element={<Availability />} />
           <Route path="appointments" element={<Appointments />} />
           <Route path="business" element={<MyBusiness />} />
+          <Route path="resources" element={<Resources />} />
           <Route path="settings" element={<Settings />} />
 
           {/* Admin */}

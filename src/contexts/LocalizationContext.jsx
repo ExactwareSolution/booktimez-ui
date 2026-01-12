@@ -210,6 +210,8 @@ const en = {
   endTime: "End Time",
   slotDuration: "Slot Duration",
   saveChanges: "Save Changes",
+  myResources: "My Resources",
+  noSpecificResourcesFound: "No specific resource found.",
 };
 
 const hi = {
@@ -227,6 +229,8 @@ const hi = {
   endTime: "समाप्ति समय",
   slotDuration: "स्लॉट अवधि",
   saveChanges: "परिवर्तन सहेजें",
+  myResources: "मेरे संसाधन",
+  noSpecificResourcesFound: "कोई विशिष्ट संसाधन नहीं मिला।",
 
   /* Navigation / Common */
   home: "होम",
@@ -445,6 +449,8 @@ const ar = {
   endTime: "وقت الانتهاء",
   slotDuration: "مدة الشريحة",
   saveChanges: "حفظ التغييرات",
+  myResources: "مواردي",
+  noSpecificResourcesFound: "لم يتم العثور على مورد محدد.",
 
   /* Navigation / Common */
   home: "الصفحة الرئيسية",

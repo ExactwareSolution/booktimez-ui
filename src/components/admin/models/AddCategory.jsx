@@ -1,12 +1,16 @@
-import React, { useState, useRef } from "react";
-import axios from "axios";
+import React, { useState, useRef, useEffect } from "react";
+import api from "../../../services/api";
+import { useAuth } from "../../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg"];
 
 const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
   const fileInputRef = useRef(null);
+  const { token } = useAuth();
 
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -17,8 +21,16 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  /* ---------------- Cleanup preview ---------------- */
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
   if (!isOpen) return null;
 
+  /* ---------------- File validation ---------------- */
   const validateAndSetFile = (file) => {
     if (!file) return;
 
@@ -39,31 +51,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleDrop = (e) => {
     e.preventDefault();
-    validateAndSetFile(e.dataTransfer.files[0]);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const formData = new FormData();
-      formData.append("name", form.name);
-      formData.append("description", form.description);
-      if (form.icon) formData.append("icon", form.icon);
-
-      const res = await axios.post("/api/categories", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      onSuccess && onSuccess(res.data);
-      onClose();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to create category");
-    } finally {
-      setLoading(false);
-    }
+    validateAndSetFile(e.dataTransfer.files?.[0]);
   };
 
   const resetIcon = () => {
@@ -72,6 +60,41 @@ const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  /* ---------------- Submit ---------------- */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("name", form.name.trim());
+      formData.append("description", form.description);
+      if (form.icon) formData.append("icon", form.icon);
+
+      const res = await api.createCategory(token, formData);
+
+      // ✅ success only
+      onSuccess?.(res.data);
+      onClose();
+
+      // ❌ REMOVE navigate from here
+    } catch (err) {
+      console.error("Create category error:", err);
+
+      // ✅ SHOW backend error
+      setError(
+        err.response?.data?.error || // <-- backend sends `error`
+          err.response?.data?.message ||
+          "Failed to create category"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ---------------- UI ---------------- */
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative">
