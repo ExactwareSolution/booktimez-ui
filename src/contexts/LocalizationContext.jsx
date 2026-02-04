@@ -114,6 +114,7 @@ const en = {
 
   // Availability / Owner
   availabilityTitle: "Availability schedules",
+  updatedSuccessfully: "Updated successfully",
   manageAvailabilities: "Manage availabilities",
   manageAvailDesc:
     "Create and remove specific availability windows for your businesses.",
@@ -211,6 +212,8 @@ const en = {
   slotDuration: "Slot Duration",
   saveChanges: "Save Changes",
   myResources: "My Resources",
+  editResource: "Edit Resource",
+  weeklyAvailabilities: "Weekly Availabilities",
   noSpecificResourcesFound: "No specific resource found.",
 };
 
@@ -231,6 +234,9 @@ const hi = {
   saveChanges: "परिवर्तन सहेजें",
   myResources: "मेरे संसाधन",
   noSpecificResourcesFound: "कोई विशिष्ट संसाधन नहीं मिला।",
+  updatedSuccessfully: "सफलतापूर्वक अपडेट किया गया",
+  weeklyAvailabilities: "साप्ताहिक उपलब्धताएँ",
+  editResource: "संसाधन संपादित करें",
 
   /* Navigation / Common */
   home: "होम",
@@ -451,7 +457,9 @@ const ar = {
   saveChanges: "حفظ التغييرات",
   myResources: "مواردي",
   noSpecificResourcesFound: "لم يتم العثور على مورد محدد.",
-
+  updatedSuccessfully: "تم التحديث بنجاح",
+  weeklyAvailabilities: "التوافر الأسبوعي",
+  editResource: "تعديل المورد",
   /* Navigation / Common */
   home: "الصفحة الرئيسية",
   dashboard: "لوحة القيادة",
@@ -660,7 +668,7 @@ export const useLocalization = () => useContext(LocalizationContext);
 export const LocalizationProvider = ({ children }) => {
   // Initial language loaded from localStorage or defaults to 'en'
   const [language, setLanguage] = useState(
-    localStorage.getItem("appLanguage") || "en"
+    localStorage.getItem("appLanguage") || "en",
   );
 
   // --- FIX: Define 't' as a lookup function ---

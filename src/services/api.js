@@ -252,7 +252,7 @@ export async function updateBusinessItem(
   businessId,
   section,
   itemId,
-  payload
+  payload,
 ) {
   return request(`/business/${businessId}/details/${section}/${itemId}`, {
     method: "PUT",
@@ -284,7 +284,6 @@ export async function createAvailability(token, businessId, payload) {
     throw new Error("Missing required parameters for createAvailability");
   }
 
-  // 'request' returns already parsed JSON
   const res = await request(`/business/${businessId}/availabilities`, {
     method: "POST",
     headers: {
@@ -294,9 +293,42 @@ export async function createAvailability(token, businessId, payload) {
     body: JSON.stringify(payload),
   });
 
-  // Check for error field from API
   if (res?.error) {
     throw new Error(res.error || "Failed to create availability");
+  }
+
+  return res;
+}
+
+// --------------------
+// UPDATE AVAILABILITY
+// --------------------
+export async function updateAvailability(
+  token,
+  businessId,
+  availabilityId,
+  payload,
+) {
+  if (!token || !businessId || !availabilityId || !payload) {
+    throw new Error("Missing required parameters for updateAvailability");
+  }
+
+  // 'request' returns already parsed JSON
+  const res = await request(
+    `/business/${businessId}/availabilities/${availabilityId}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  // Check for error field from API
+  if (res?.error) {
+    throw new Error(res.error || "Failed to update availability");
   }
 
   return res; // ✅ already parsed JSON
@@ -339,7 +371,7 @@ export async function deleteAvailability(token, businessId, availabilityId) {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 
   // If res has 'ok', it might be a raw fetch Response
@@ -407,49 +439,40 @@ export async function listBusinessResources(token, businessId) {
 // --------------------
 // GET SINGLE RESOURCE
 // --------------------
-export async function getResource(token, resourceId) {
-  if (!token || !resourceId) {
+export async function getResource(token, businessId) {
+  if (!token || !businessId) {
     throw new Error("Missing required parameters for getResource");
   }
 
-  const res = await request(`/resources/${resourceId}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    const res = await request(`/resources/business/${businessId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || "Failed to fetch resource");
+    // If using Axios, the data is in res.data
+    return res; // this should be your array of resources
+  } catch (err) {
+    console.error("getResource API error:", err);
+    throw new Error(err.response?.data?.error || "Failed to fetch resource");
   }
-
-  return res.json();
 }
 
 // --------------------
 // UPDATE RESOURCE
 // --------------------
 export async function updateResource(token, resourceId, payload) {
-  if (!token || !resourceId || !payload) {
-    throw new Error("Missing required parameters for updateResource");
-  }
-
   const res = await request(`/resources/${resourceId}`, {
     method: "PUT",
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || "Failed to update resource");
-  }
-
-  return res.json();
+  return res;
 }
 
 // --------------------
@@ -485,7 +508,7 @@ export async function listBusinessAppointments(token, businessId) {
 export async function cancelAppointment(token, businessId, appointmentId) {
   return request(
     `/business/${businessId}/appointments/${appointmentId}/cancel`,
-    { method: "PATCH", headers: { Authorization: `Bearer ${token}` } }
+    { method: "PATCH", headers: { Authorization: `Bearer ${token}` } },
   );
 }
 
@@ -519,15 +542,15 @@ export async function getAvailability(
   categoryId,
   start,
   end,
-  byId = false
+  byId = false,
 ) {
   if (byId) {
     return request(
-      `/public/id/${slugOrId}/categories/${categoryId}/availability?start=${start}&end=${end}`
+      `/public/id/${slugOrId}/categories/${categoryId}/availability?start=${start}&end=${end}`,
     );
   }
   return request(
-    `/public/${slugOrId}/categories/${categoryId}/availability?start=${start}&end=${end}`
+    `/public/${slugOrId}/categories/${categoryId}/availability?start=${start}&end=${end}`,
   );
 }
 
@@ -548,6 +571,96 @@ export async function bookAppointmentById(id, payload) {
 export async function getDashboardAnalytics(token) {
   return request("/analytics/overview", {
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function listMyPayments(token) {
+  return request("/payments", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function getPaymentDetails(token, paymentId) {
+  return request(`/payments/${paymentId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+// admin routes
+
+export async function getAllUsers(token) {
+  return request("/users", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function createPlans(token, payload) {
+  return request("/plans", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getAllPlans() {
+  return request("/plans", {
+    method: "GET",
+  });
+}
+
+export async function updatePlans(token, planId, payload) {
+  return request(`/plans/${planId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deletePlans(token, planId) {
+  return request(`/plans/${planId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function getAllCategories() {
+  return request("/categories", {
+    method: "GET",
+  });
+}
+
+export async function updateCategories(token, categoryId, payload) {
+  return request(`/categories/${categoryId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCategories(token, categoryId) {
+  return request(`/categories/${categoryId}`, {
+    method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -585,4 +698,16 @@ export default {
   deleteResource,
   getResource,
   updateResource,
+
+  // 🔥 admin
+  getAllUsers,
+  createPlans,
+  getAllPlans,
+  updatePlans,
+  deletePlans,
+  getAllCategories,
+  updateCategories,
+  deleteCategories,
+  updateAvailability,
+  listMyPayments,
 };

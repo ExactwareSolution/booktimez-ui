@@ -80,7 +80,7 @@ export default function Hero() {
                   Booking Link
                 </div>
                 <div className="text-sm font-semibold text-white break-all">
-                  your-business.booktimez/booking
+                  www.booktimez/booking/your-business
                 </div>
                 <div className="inline-block px-3 py-1 bg-slate-700 rounded text-xs font-medium text-slate-200">
                   Shareable • Auto-timezone

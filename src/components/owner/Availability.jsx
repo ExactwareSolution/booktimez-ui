@@ -89,7 +89,7 @@ const Availability = () => {
     try {
       const aRes = await api.listBusinessAvailabilities(
         token,
-        selectedBusinessId
+        selectedBusinessId,
       );
       if (aRes && aRes.availabilities) {
         setAvailabilities(aRes.availabilities);
@@ -156,7 +156,7 @@ const Availability = () => {
   const toggleResource = (id) => {
     const idStr = String(id);
     setSelectedResourceIds((prev) =>
-      prev.includes(idStr) ? prev.filter((i) => i !== idStr) : [...prev, idStr]
+      prev.includes(idStr) ? prev.filter((i) => i !== idStr) : [...prev, idStr],
     );
   };
 
@@ -184,20 +184,21 @@ const Availability = () => {
 
   const doCreateAvailability = async (e) => {
     e?.preventDefault();
-    if (!token || !selectedBusinessId) return;
+    if (!token || !selectedBusinessId || selectedResourceIds.length === 0)
+      return;
+
     setErrorMsg("");
     setSuccessMsg("");
     try {
       await api.createAvailability(token, selectedBusinessId, {
         categoryId: selectedCategoryId,
-        resourceIds: selectedResourceIds.length
-          ? selectedResourceIds
-          : undefined,
         weekday: Number(weekday),
         startTime,
         endTime,
         slotDurationMinutes: Number(slotDurationMinutes),
+        resourceIds: selectedResourceIds, // ✅ send all selected resources
       });
+
       setSuccessMsg(t("availabilitySaved"));
       await fetchAvailabilities();
       setSelectedResourceIds([]);
@@ -459,9 +460,9 @@ const Availability = () => {
                       startTime: editingSlot.startTime,
                       endTime: editingSlot.endTime,
                       slotDurationMinutes: Number(
-                        editingSlot.slotDurationMinutes
+                        editingSlot.slotDurationMinutes,
                       ),
-                    }
+                    },
                   );
                   setSuccessMsg(t("updatedSuccessfully"));
                   setIsEditModalOpen(false);

@@ -56,7 +56,7 @@ export default function Login() {
             token: resp.token,
             user: resp.user,
             isBusinessAvailable: resp.isBusinessAvailable,
-          })
+          }),
         );
 
         if (resp.user.role === "admin") {
@@ -89,9 +89,9 @@ export default function Login() {
     const responseType = "id_token token"; // ✅ request ID token + access token
 
     const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      redirectUri
+      redirectUri,
     )}&response_type=${encodeURIComponent(
-      responseType
+      responseType,
     )}&scope=${encodeURIComponent(scope)}&nonce=nonce`;
 
     window.location.href = oauthUrl;
@@ -112,7 +112,7 @@ export default function Login() {
             token: resp.token,
             user: resp.user,
             isBusinessAvailable: resp.isBusinessAvailable,
-          })
+          }),
         );
         if (resp.user.role === "admin") {
           console.log("==============>", resp.user.role);

@@ -64,7 +64,7 @@ export default function DashboardLayout() {
             import.meta.env.VITE_API_BASE ||
             "https://zd4hf92j-5000.inc1.devtunnels.ms/api"
           }/business`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
         const data = await res.json();
@@ -255,7 +255,7 @@ export default function DashboardLayout() {
             sidebarOpen ? "left-64" : "left-20"
           }`}
         >
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h2 className="text-2xl font-black tracking-tighter text-gray-900 uppercase italic">
             {businessName || "Dashboard"}
           </h2>
 
