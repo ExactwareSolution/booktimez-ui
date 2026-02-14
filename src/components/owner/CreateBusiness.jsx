@@ -185,17 +185,14 @@ const CreateBusiness = () => {
           logoUrl: logoUrl || null,
         };
 
-        res = await fetch(
-          "https://zd4hf92j-4000.inc1.devtunnels.ms/api/business",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(body),
+        res = await fetch("https://booktimez-app.onrender.com/api/business", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+          body: JSON.stringify(body),
+        });
       }
 
       const data = await res.json().catch(() => ({}));
