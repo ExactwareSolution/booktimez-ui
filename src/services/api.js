@@ -641,9 +641,12 @@ export async function deletePlans(token, planId) {
   });
 }
 
-export async function getAllCategories() {
+export async function getAllCategories(token) {
   return request("/categories", {
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 }
 
