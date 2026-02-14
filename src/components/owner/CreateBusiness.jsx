@@ -77,7 +77,7 @@ const CreateBusiness = () => {
       }
       try {
         setFetchError(null);
-        const res = await api.createCategory(token);
+        const res = await api.getAllCategories(token);
         // await fetch("http://localhost:5000/api/categories", {
         //   headers: { Authorization: `Bearer ${token}` },
         // });
