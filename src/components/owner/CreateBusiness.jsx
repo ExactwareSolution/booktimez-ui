@@ -69,32 +69,56 @@ const CreateBusiness = () => {
   const [logoFile, setLogoFile] = useState(null);
 
   // Fetch categories on mount
+  // useEffect(() => {
+  //   async function fetchCategories() {
+  //     if (!token) {
+  //       setFetchError("Not authenticated.");
+  //       return;
+  //     }
+  //     try {
+  //       setFetchError(null);
+  //       const res = await api.getAllCategories(token);
+  //       // await fetch("http://localhost:5000/api/categories", {
+  //       //   headers: { Authorization: `Bearer ${token}` },
+  //       // });
+  //       if (!res.ok) {
+  //         const err = await res.json().catch(() => ({}));
+  //         throw new Error(
+  //           err.error || `Failed to fetch categories (${res.status})`,
+  //         );
+  //       }
+  //       const data = await res.json();
+  //       const arr = Array.isArray(data) ? data : data.categories || [];
+  //       setCategories(arr);
+  //     } catch (err) {
+  //       console.error("fetchCategories:", err);
+  //       setFetchError("Failed to load categories. Refresh or try again later.");
+  //     }
+  //   }
+  //   fetchCategories();
+  // }, [token]);
+
   useEffect(() => {
     async function fetchCategories() {
       if (!token) {
         setFetchError("Not authenticated.");
         return;
       }
+
       try {
         setFetchError(null);
-        const res = await api.getAllCategories(token);
-        // await fetch("http://localhost:5000/api/categories", {
-        //   headers: { Authorization: `Bearer ${token}` },
-        // });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(
-            err.error || `Failed to fetch categories (${res.status})`,
-          );
-        }
-        const data = await res.json();
+
+        const data = await api.getAllCategories(token);
+
         const arr = Array.isArray(data) ? data : data.categories || [];
+
         setCategories(arr);
       } catch (err) {
         console.error("fetchCategories:", err);
         setFetchError("Failed to load categories. Refresh or try again later.");
       }
     }
+
     fetchCategories();
   }, [token]);
 
