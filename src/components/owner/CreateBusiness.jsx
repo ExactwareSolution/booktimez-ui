@@ -15,16 +15,7 @@ import {
 } from "lucide-react";
 
 import rawTimezones from "./json_data/timezones.json";
-
-/**
- * CreateBusiness.jsx
- * - react-select multi dropdown for categories
- * - responsive layout
- * - logo upload preview and validation
- * - slug auto-generate from name (editable)
- *
- * Adjust API endpoints if your backend paths differ.
- */
+import api from "../../services/api";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -86,13 +77,14 @@ const CreateBusiness = () => {
       }
       try {
         setFetchError(null);
-        const res = await fetch("http://localhost:5000/api/categories", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.createCategory(token);
+        // await fetch("http://localhost:5000/api/categories", {
+        //   headers: { Authorization: `Bearer ${token}` },
+        // });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           throw new Error(
-            err.error || `Failed to fetch categories (${res.status})`
+            err.error || `Failed to fetch categories (${res.status})`,
           );
         }
         const data = await res.json();
@@ -172,11 +164,11 @@ const CreateBusiness = () => {
         fd.append("language", language);
         fd.append(
           "categoryIds",
-          JSON.stringify(selectedOptions.map((o) => o.value))
+          JSON.stringify(selectedOptions.map((o) => o.value)),
         );
         fd.append("logo", logoFile);
 
-        res = await fetch("http://localhost:5000/api/business", {
+        res = await fetch("https://booktimez-app.onrender.com/api/business", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -202,7 +194,7 @@ const CreateBusiness = () => {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(body),
-          }
+          },
         );
       }
 
